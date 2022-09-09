@@ -13,6 +13,11 @@
 
 body {
   background-color: #fcfcfc;
+  scroll-behavior: smooth;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 //Typography
