@@ -1,0 +1,68 @@
+.content {
+  padding: 1.5rem 1rem;
+}
+
+/* Categories */
+.categories {
+  display: flex;
+  justify-content: center;
+}
+
+.categories .category {
+  font-size: 1rem;
+  border-radius: 2px;
+  border: 1px solid #d6d6d6;
+  font-weight: 500;
+  color: #606060;
+  padding: 0.5rem;
+  width: 100px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.categories .category--active {
+  color: var(--color-azure);
+  border-color: var(--color-azure);
+}
+
+/* Selector */
+.select-box {
+  margin: 2rem 0;
+  width: 100%;
+  max-width: 240px;
+}
+.select-option {
+  display: flex;
+  align-items: center;
+}
+.select-option img {
+  padding-right: 0.5rem;
+}
+
+/* Cards */
+.news-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Media queries */
+@media (min-width: 425px) {
+}
+
+@media (min-width: 768px) {
+  .news-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 25px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .categories {
+    margin-top: 2rem;
+  }
+}

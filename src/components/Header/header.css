@@ -1,0 +1,11 @@
+.header {
+  box-shadow: 0 1px 4px 0 #0015291f;
+  background-image: linear-gradient(180deg, #ececec -32%, #fff 124%);
+  padding: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    padding: 2.2rem;
+  }
+}
