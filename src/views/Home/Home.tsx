@@ -12,22 +12,11 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 interface News {
   author: string;
-  //   comment_text: string;
   created_at: string;
-  //   created_at_i: number;
-  //   num_comments: any;
   objectID: string;
-  //   parent_id: number;
-  //   points: any;
-  //   story_id: number;
-  //   story_text: any;
   story_title: string;
   story_url: string;
-  //   title: any;
-  //   url: any;
   is_liked: boolean;
-  //   _highlightResult: object;
-  //   _tags: Array<string>;
 }
 
 const Home = () => {
@@ -65,6 +54,7 @@ const Home = () => {
 
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectLoading, setSelectLoading] = useState<boolean>(false);
   const [favorites, setFavorites] = useState<News[]>([]);
   const [likedPosts, setLikedPosts] = useState<Array<string>>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -105,6 +95,26 @@ const Home = () => {
     if (!isDuplicated) {
       setFavorites([...favorites, { ...newInfo, is_liked: true }]);
       setLikedPosts([...likedPosts, id]);
+      setNews((current) =>
+        current.map((obj) => {
+          if (obj.objectID.toString() === id) {
+            return { ...obj, is_liked: true };
+          }
+
+          return obj;
+        })
+      );
+
+      console.log(
+        news.map((obj) => {
+          if (obj.objectID.toString() === id) {
+            return { ...obj, is_liked: true };
+          }
+
+          return obj;
+        })
+      );
+      console.log("Clcik");
       localStorage.setItem(
         "favorites",
         JSON.stringify([...favorites, newInfo])
@@ -117,6 +127,17 @@ const Home = () => {
     const newFavorites = favorites.filter(
       (favorite) => favorite.objectID.toString() !== id.toString()
     );
+
+    setNews((current) =>
+      current.map((obj) => {
+        if (obj.objectID.toString() === id) {
+          return { ...obj, is_liked: false };
+        }
+
+        return obj;
+      })
+    );
+
     console.log("newfav", newFavorites);
     setFavorites(newFavorites);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
@@ -142,14 +163,33 @@ const Home = () => {
     setHasMorePaginationNews(true);
     setPagination(1);
     setSelectOption(selectValue);
-    setLoading(true);
+    setSelectLoading(true);
     getNewsByTechnology(selectValue, 0)
       .then((res) => {
-        setNews(res.hits);
-        setLoading(false);
+        // console.log("Liked", handleLikedPostsLocalStorage());
+        console.log(
+          "Localstorage liked posts DENTRO DEL PROMISE",
+          localStorage.getItem("liked-posts")
+        );
+        console.log("LIKED POSTS", likedPosts);
+        // if()
+        const arrayFormateado: News[] = res.hits.map((hit) => ({
+          objectID: hit.objectID,
+          author: hit.author,
+          created_at: hit.created_at,
+          story_title: hit.story_title,
+          story_url: hit.story_url,
+          is_liked: handleIsLiked(hit.objectID),
+          // is_liked: handleIsLiked(hit.objectID),
+        }));
+
+        console.log(arrayFormateado);
+        // setNews(res.hits);
+        setNews(arrayFormateado);
+        setSelectLoading(false);
       })
       .catch((error) => {
-        setLoading(false);
+        setSelectLoading(false);
         throw new Error(error);
       });
     localStorage.setItem("select-value", selectValue);
@@ -167,7 +207,9 @@ const Home = () => {
     if (localStorage.getItem("liked-posts")) {
       const likedPostsLocalStorage: string | null =
         localStorage.getItem("liked-posts") || "";
+
       setLikedPosts(JSON.parse(likedPostsLocalStorage));
+      return JSON.parse(likedPostsLocalStorage);
     }
   };
 
@@ -180,19 +222,27 @@ const Home = () => {
   };
 
   const handleIsLiked = (objectID: string) => {
-    // if (likedPosts.length > 0)
-    if (likedPosts.length > 0) {
-      if (likedPosts.includes(objectID)) {
-        console.log(objectID);
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+    if (localStorage.getItem("liked-posts")) {
+      const likedPostsLocalStorage: string | null =
+        localStorage.getItem("liked-posts") || "";
 
-    // }
+      return JSON.parse(likedPostsLocalStorage).includes(objectID);
+    }
+  };
+
+  const handleSelectValue = (): any => {
+    const localStorageSelectValue: string | null =
+      localStorage.getItem("select-value");
+    if (!localStorageSelectValue) return options[0];
+
+    if (localStorageSelectValue) {
+      let selectedOption = options.find(
+        (obj: { value: string; label: string }) =>
+          obj.value === localStorageSelectValue
+      );
+
+      return selectedOption;
+    }
   };
 
   useEffect(() => {
@@ -201,14 +251,9 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Liked posts from useEffect", likedPosts);
-  }, [likedPosts]);
-
-  useEffect(() => {
     setLoading(true);
-    getNewsByTechnology("angular", 0)
+    getNewsByTechnology(handleSelectValue().value, 0)
       .then((res) => {
-        console.log("Liked", handleLikedPostsLocalStorage());
         const arrayFormateado: News[] = res.hits.map((hit) => ({
           objectID: hit.objectID,
           author: hit.author,
@@ -218,8 +263,6 @@ const Home = () => {
           is_liked: handleIsLiked(hit.objectID),
         }));
 
-        console.log(arrayFormateado);
-        // setNews(res.hits);
         setNews(arrayFormateado);
         setLoading(false);
       })
@@ -260,10 +303,11 @@ const Home = () => {
             <div className="select-box">
               <Select
                 options={options}
-                //   defaultValue={options[1]}
-                defaultValue={options[0]}
-                onChange={(evt: any) => handleSelect(evt)}
+                // defaultValue={options[0]}
+                defaultValue={handleSelectValue()}
+                onChange={(evt: any) => handleSelect(evt.value)}
               />
+              bo{options[0].value}
             </div>
           )}
 
@@ -277,7 +321,29 @@ const Home = () => {
                 loader={<div>Loading...</div>}
                 className="news-card-list news-list"
               >
-                {news.map(
+                {selectLoading
+                  ? "Loading..."
+                  : news.map(
+                      (newsInfo, i) =>
+                        newsInfo.story_url && (
+                          <div className="news-item" key={i}>
+                            {newsInfo.objectID}
+                            <NewsCard
+                              isFavorite={newsInfo.is_liked}
+                              author={newsInfo.author}
+                              date={moment(newsInfo.created_at).fromNow()}
+                              title={newsInfo.story_title}
+                              newsUrl={newsInfo.story_url}
+                              onClickFavorite={() =>
+                                newsInfo.is_liked
+                                  ? handleRemoveFavorite(newsInfo.objectID)
+                                  : handleAddFavorite(newsInfo.objectID)
+                              }
+                            />
+                          </div>
+                        )
+                    )}
+                {/* {news.map(
                   (newsInfo, i) =>
                     newsInfo.story_url && (
                       <div className="news-item" key={i}>
@@ -289,12 +355,14 @@ const Home = () => {
                           title={newsInfo.story_title}
                           newsUrl={newsInfo.story_url}
                           onClickFavorite={() =>
-                            handleAddFavorite(newsInfo.objectID)
+                            newsInfo.is_liked
+                              ? handleRemoveFavorite(newsInfo.objectID)
+                              : handleAddFavorite(newsInfo.objectID)
                           }
                         />
                       </div>
                     )
-                )}
+                )} */}
               </InfiniteScroll>
             </div>
           )}
