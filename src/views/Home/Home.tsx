@@ -65,10 +65,20 @@ const Home = () => {
 
   const fetchMoreData = () => {
     setLoading(true);
-    getNewsByTechnology(selectOption, pagination)
+    getNewsByTechnology(selectOption, pagination + 1)
       .then((res: any) => {
         if (res.hits.length > 0) {
-          setNews([...news, ...res.hits]);
+          const arrayFormateado: News[] = res.hits.map((hit: any) => ({
+            objectID: hit.objectID,
+            author: hit.author,
+            created_at: hit.created_at,
+            story_title: hit.story_title,
+            story_url: hit.story_url,
+            is_liked: handleIsLiked(hit.objectID),
+          }));
+
+          setNews([...news, ...arrayFormateado]);
+          // setNews([...news, ...res.hits]);
           setLoading(false);
           setPagination((prev) => prev + 1);
           setHasMorePaginationNews(true);
@@ -161,18 +171,11 @@ const Home = () => {
 
   const handleSelect = (selectValue: string) => {
     setHasMorePaginationNews(true);
-    setPagination(1);
+    setPagination(0);
     setSelectOption(selectValue);
     setSelectLoading(true);
     getNewsByTechnology(selectValue, 0)
       .then((res) => {
-        // console.log("Liked", handleLikedPostsLocalStorage());
-        console.log(
-          "Localstorage liked posts DENTRO DEL PROMISE",
-          localStorage.getItem("liked-posts")
-        );
-        console.log("LIKED POSTS", likedPosts);
-        // if()
         const arrayFormateado: News[] = res.hits.map((hit) => ({
           objectID: hit.objectID,
           author: hit.author,
@@ -180,11 +183,8 @@ const Home = () => {
           story_title: hit.story_title,
           story_url: hit.story_url,
           is_liked: handleIsLiked(hit.objectID),
-          // is_liked: handleIsLiked(hit.objectID),
         }));
 
-        console.log(arrayFormateado);
-        // setNews(res.hits);
         setNews(arrayFormateado);
         setSelectLoading(false);
       })
@@ -248,6 +248,7 @@ const Home = () => {
   useEffect(() => {
     handleFavoriteLocalStorage();
     handleLikedPostsLocalStorage();
+    setSelectOption(handleSelectValue().value);
   }, []);
 
   useEffect(() => {
@@ -380,6 +381,7 @@ const Home = () => {
                   (newsInfo, i) =>
                     newsInfo.story_url && (
                       <div className="news-item" key={i}>
+                        {newsInfo.objectID}
                         <NewsCard
                           isFavorite={true}
                           author={newsInfo.author}
