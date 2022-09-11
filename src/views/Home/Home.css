@@ -50,6 +50,9 @@
   list-style: none;
 }
 
+.news-item {
+  width: 100%;
+}
 /* Media queries */
 @media (min-width: 425px) {
 }

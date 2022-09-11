@@ -8,29 +8,32 @@ import useServices from "../../api/services";
 import Select from "react-select";
 import moment from "moment";
 
+import InfiniteScroll from "react-infinite-scroll-component";
+
 interface News {
   author: string;
-  comment_text: string;
+  //   comment_text: string;
   created_at: string;
-  created_at_i: number;
-  num_comments: any;
+  //   created_at_i: number;
+  //   num_comments: any;
   objectID: string;
-  parent_id: number;
-  points: any;
-  story_id: number;
-  story_text: any;
+  //   parent_id: number;
+  //   points: any;
+  //   story_id: number;
+  //   story_text: any;
   story_title: string;
   story_url: string;
-  title: any;
-  url: any;
-  _highlightResult: object;
-  _tags: Array<string>;
+  //   title: any;
+  //   url: any;
+  is_liked: boolean;
+  //   _highlightResult: object;
+  //   _tags: Array<string>;
 }
 
 const Home = () => {
   const { NewsCard, Header } = useComponents();
   const { getNewsByTechnology } = useServices();
-  const options = [
+  const options: any = [
     {
       value: "angular",
       label: (
@@ -54,7 +57,7 @@ const Home = () => {
       label: (
         <div className="select-option">
           <img src={IconVue} alt="" />
-          React
+          Vue
         </div>
       ),
     },
@@ -63,22 +66,58 @@ const Home = () => {
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [favorites, setFavorites] = useState<News[]>([]);
+  const [likedPosts, setLikedPosts] = useState<Array<string>>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [pagination, setPagination] = useState<number>(0);
+  const [hasMorePaginationNews, setHasMorePaginationNews] =
+    useState<boolean>(true);
   const [selectOption, setSelectOption] = useState<string>(options[0].value);
+
+  const fetchMoreData = () => {
+    setLoading(true);
+    getNewsByTechnology(selectOption, pagination)
+      .then((res: any) => {
+        if (res.hits.length > 0) {
+          setNews([...news, ...res.hits]);
+          setLoading(false);
+          setPagination((prev) => prev + 1);
+          setHasMorePaginationNews(true);
+        } else {
+          setHasMorePaginationNews(false);
+        }
+      })
+      .catch((error) => {
+        setLoading(false);
+        setHasMorePaginationNews(false);
+        throw new Error(error);
+      });
+  };
 
   const handleAddFavorite = (id: string) => {
     const newInfo = news.filter(
       (newInfo) => newInfo.objectID === id.toString()
     )[0];
-    setFavorites([...favorites, newInfo]);
-    localStorage.setItem("favorites", JSON.stringify([...favorites, newInfo]));
+
+    const isDuplicated = favorites.some(
+      (favorite) => favorite.objectID === newInfo.objectID
+    );
+
+    if (!isDuplicated) {
+      setFavorites([...favorites, { ...newInfo, is_liked: true }]);
+      setLikedPosts([...likedPosts, id]);
+      localStorage.setItem(
+        "favorites",
+        JSON.stringify([...favorites, newInfo])
+      );
+      localStorage.setItem("liked-posts", JSON.stringify([...likedPosts, id]));
+    }
   };
 
   const handleRemoveFavorite = (id: string) => {
     const newFavorites = favorites.filter(
-      (favorite) => favorite.story_id.toString() !== id.toString()
+      (favorite) => favorite.objectID.toString() !== id.toString()
     );
-
+    console.log("newfav", newFavorites);
     setFavorites(newFavorites);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
   };
@@ -100,6 +139,8 @@ const Home = () => {
   };
 
   const handleSelect = (selectValue: string) => {
+    setHasMorePaginationNews(true);
+    setPagination(1);
     setSelectOption(selectValue);
     setLoading(true);
     getNewsByTechnology(selectValue, 0)
@@ -111,23 +152,81 @@ const Home = () => {
         setLoading(false);
         throw new Error(error);
       });
+    localStorage.setItem("select-value", selectValue);
   };
+
+  //   const handleSelectValueLocalStorage = () => {
+  //     if (localStorage.getItem("select-value")) {
+  //       const selectValueLocalStorage: any = localStorage.getItem("select-value");
+  //       console.log(selectValueLocalStorage);
+  //       setSelectOption(selectValueLocalStorage);
+  //     }
+  //   };
+
+  const handleLikedPostsLocalStorage = () => {
+    if (localStorage.getItem("liked-posts")) {
+      const likedPostsLocalStorage: string | null =
+        localStorage.getItem("liked-posts") || "";
+      setLikedPosts(JSON.parse(likedPostsLocalStorage));
+    }
+  };
+
+  const getSelectValueFromLocalStorage = () => {
+    const selectedOption = options.filter(
+      (option: any) => option.value === selectOption
+    )[0];
+    console.log(selectOption);
+    return selectOption;
+  };
+
+  const handleIsLiked = (objectID: string) => {
+    // if (likedPosts.length > 0)
+    if (likedPosts.length > 0) {
+      if (likedPosts.includes(objectID)) {
+        console.log(objectID);
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+
+    // }
+  };
+
+  useEffect(() => {
+    handleFavoriteLocalStorage();
+    handleLikedPostsLocalStorage();
+  }, []);
+
+  useEffect(() => {
+    console.log("Liked posts from useEffect", likedPosts);
+  }, [likedPosts]);
 
   useEffect(() => {
     setLoading(true);
     getNewsByTechnology("angular", 0)
       .then((res) => {
-        setNews(res.hits);
+        console.log("Liked", handleLikedPostsLocalStorage());
+        const arrayFormateado: News[] = res.hits.map((hit) => ({
+          objectID: hit.objectID,
+          author: hit.author,
+          created_at: hit.created_at,
+          story_title: hit.story_title,
+          story_url: hit.story_url,
+          is_liked: handleIsLiked(hit.objectID),
+        }));
+
+        console.log(arrayFormateado);
+        // setNews(res.hits);
+        setNews(arrayFormateado);
         setLoading(false);
       })
       .catch((error) => {
         setLoading(false);
         throw new Error(error);
       });
-  }, []);
-
-  useEffect(() => {
-    handleFavoriteLocalStorage();
   }, []);
 
   return (
@@ -156,62 +255,105 @@ const Home = () => {
             </div>
           </div>
           {/* Selector */}
-          <div className="select-box">
-            <Select
-              options={options}
-              defaultValue={options[0]}
-              onChange={(evt: any) => handleSelect(evt.value)}
-            />
-          </div>
+
+          {selectOption && (
+            <div className="select-box">
+              <Select
+                options={options}
+                //   defaultValue={options[1]}
+                defaultValue={options[0]}
+                onChange={(evt: any) => handleSelect(evt)}
+              />
+            </div>
+          )}
+
           {/* Card list */}
           {activeCategory === "all" && (
-            <ul className="news-card-list news-list">
-              {loading && "Loading..."}
-              {!loading && (
-                <>
-                  {news.map((newsInfo) => (
-                    <li key={newsInfo.objectID}>
-                      <NewsCard
-                        isFavorite={false}
-                        author={newsInfo.author}
-                        date={moment(news[0].created_at).fromNow()}
-                        title={newsInfo.story_title}
-                        newsUrl={newsInfo.story_url}
-                        onClickFavorite={() =>
-                          handleAddFavorite(newsInfo.objectID)
-                        }
-                      />
-                    </li>
-                  ))}
-                </>
-              )}
-            </ul>
+            <div>
+              <InfiniteScroll
+                dataLength={news.length}
+                next={fetchMoreData}
+                hasMore={hasMorePaginationNews}
+                loader={<div>Loading...</div>}
+                className="news-card-list news-list"
+              >
+                {news.map(
+                  (newsInfo, i) =>
+                    newsInfo.story_url && (
+                      <div className="news-item" key={i}>
+                        {newsInfo.objectID}
+                        <NewsCard
+                          isFavorite={newsInfo.is_liked}
+                          author={newsInfo.author}
+                          date={moment(newsInfo.created_at).fromNow()}
+                          title={newsInfo.story_title}
+                          newsUrl={newsInfo.story_url}
+                          onClickFavorite={() =>
+                            handleAddFavorite(newsInfo.objectID)
+                          }
+                        />
+                      </div>
+                    )
+                )}
+              </InfiniteScroll>
+            </div>
+          )}
+
+          {activeCategory === "favorites" && (
+            <div>
+              <InfiniteScroll
+                dataLength={favorites.length}
+                next={fetchMoreData}
+                hasMore={hasMorePaginationNews}
+                loader={<div>Loading...</div>}
+                className="news-card-list news-list"
+              >
+                {favorites.map(
+                  (newsInfo, i) =>
+                    newsInfo.story_url && (
+                      <div className="news-item" key={i}>
+                        <NewsCard
+                          isFavorite={true}
+                          author={newsInfo.author}
+                          date={moment(newsInfo.created_at).fromNow()}
+                          title={newsInfo.story_title}
+                          newsUrl={newsInfo.story_url}
+                          onClickFavorite={() =>
+                            handleRemoveFavorite(newsInfo.objectID)
+                          }
+                        />
+                      </div>
+                    )
+                )}
+              </InfiniteScroll>
+            </div>
           )}
 
           {/* Favorite List */}
-          {activeCategory === "favorites" && (
+          {/* {activeCategory === "favorites" && (
             <ul className="news-card-list news-list">
               {loading && "Loading..."}
               {!loading && (
                 <>
                   {favorites.map((favoriteNew: News) => (
-                    <li key={favoriteNew.objectID}>
-                      <NewsCard
-                        isFavorite={true}
-                        author={favoriteNew.author}
-                        date={moment(news[0].created_at).fromNow()}
-                        title={favoriteNew.story_title}
-                        newsUrl={favoriteNew.story_title}
-                        onClickFavorite={() =>
-                          handleRemoveFavorite(favoriteNew.story_id.toString())
-                        }
-                      />
-                    </li>
+                    // <li key={favoriteNew.objectID}>
+                    <NewsCard
+                      isFavorite={true}
+                      author={favoriteNew.author}
+                      date={moment(news[0].created_at).fromNow()}
+                      title={favoriteNew.story_title}
+                      newsUrl={favoriteNew.story_title}
+                      onClickFavorite={() =>
+                        handleRemoveFavorite(favoriteNew.story_id.toString())
+                      }
+                      cardKey={favoriteNew.objectID}
+                    />
+                    // </li>
                   ))}
                 </>
               )}
             </ul>
-          )}
+          )} */}
         </div>
       </div>
     </div>
