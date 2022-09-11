@@ -20,7 +20,7 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-//Typography
+/* //Typography */
 h1 {
   font-size: 1.75rem;
 }

@@ -396,32 +396,6 @@ const Home = () => {
               </InfiniteScroll>
             </div>
           )}
-
-          {/* Favorite List */}
-          {/* {activeCategory === "favorites" && (
-            <ul className="news-card-list news-list">
-              {loading && "Loading..."}
-              {!loading && (
-                <>
-                  {favorites.map((favoriteNew: News) => (
-                    // <li key={favoriteNew.objectID}>
-                    <NewsCard
-                      isFavorite={true}
-                      author={favoriteNew.author}
-                      date={moment(news[0].created_at).fromNow()}
-                      title={favoriteNew.story_title}
-                      newsUrl={favoriteNew.story_title}
-                      onClickFavorite={() =>
-                        handleRemoveFavorite(favoriteNew.story_id.toString())
-                      }
-                      cardKey={favoriteNew.objectID}
-                    />
-                    // </li>
-                  ))}
-                </>
-              )}
-            </ul>
-          )} */}
         </div>
       </div>
     </div>
