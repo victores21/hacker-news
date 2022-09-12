@@ -59,6 +59,8 @@ const useHome = () => {
   );
 
   //Handlers
+
+  // Handles fetching more data for InifiteScroll Component
   const handleFetchMoreData = (): void => {
     getNewsByTechnology(selectedTechnology, pagination + 1)
       .then((res: any) => {
@@ -87,6 +89,7 @@ const useHome = () => {
 
   const fetchMoreFavorites = () => {};
 
+  // Handle adding a post to favorites
   const handleAddFavorite = (id: string) => {
     const newFavPost = news.filter(
       (newFavPost) => newFavPost.objectID === id.toString()
@@ -116,6 +119,7 @@ const useHome = () => {
     }
   };
 
+  //Removes post from favorites
   const handleRemoveFavorite = (id: string) => {
     const newFavoritesArr = favorites.filter(
       (favorite) => favorite.objectID.toString() !== id.toString()
@@ -134,10 +138,12 @@ const useHome = () => {
     localStorage.setItem("favorites", JSON.stringify(newFavoritesArr));
   };
 
+  // Handles switching from all technologies to favorites
   const handleActiveCategory = (category: string) => {
     setActiveCategory(category);
   };
 
+  // Handles all the data that is saved in localStorage
   const handleFavoriteLocalStorage = () => {
     const favoritesLocalStorage: string | null =
       localStorage.getItem("favorites");
@@ -150,6 +156,7 @@ const useHome = () => {
     }
   };
 
+  // Handle selecting one or another technology in the select
   const handleSelect = (selectValue: string) => {
     const initialPagination = 0;
     setHasMorePaginationNews(true);
@@ -176,6 +183,7 @@ const useHome = () => {
     localStorage.setItem("select-value", selectValue);
   };
 
+  // handle the liked posts in localStorage
   const handleLikedPostsLocalStorage = (): Array<string> | undefined => {
     if (localStorage.getItem("liked-posts")) {
       const likedPostsLocalStorage: string | null =
@@ -186,6 +194,7 @@ const useHome = () => {
     }
   };
 
+  // Checks if a post has been liked before
   const handleIsLiked = (objectID: string): boolean => {
     if (!localStorage.getItem("liked-posts")) return false;
 
@@ -195,6 +204,7 @@ const useHome = () => {
     return JSON.parse(likedPostsLocalStorage).includes(objectID);
   };
 
+  // Handles the select value from localStorage
   const handleSelectValue = (): any => {
     const localStorageSelectValue: string | null =
       localStorage.getItem("select-value");

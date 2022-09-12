@@ -110,7 +110,6 @@ const Home = () => {
           {/* When activeCategory is 'favorites' show this list for favorites */}
           {activeCategory === "favorites" && (
             <div className="list-favorites">
-              Favorites
               <InfiniteScroll
                 dataLength={favorites.length}
                 next={fetchMoreFavorites}
