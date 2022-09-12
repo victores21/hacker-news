@@ -76,62 +76,67 @@ const Home = () => {
 
           {/* When activeCategory is 'All' show this list */}
           {activeCategory === "all" && (
-            <InfiniteScroll
-              dataLength={news.length}
-              next={handleFetchMoreData}
-              hasMore={hasMorePaginationNews}
-              loader={<div>Loading...</div>}
-              className="news-card-list news-list"
-            >
-              {news.map(
-                (newsInfo, i) =>
-                  newsInfo.story_url && (
-                    <div className="news-item" key={i}>
-                      <NewsCard
-                        isFavorite={newsInfo.is_liked}
-                        author={newsInfo.author}
-                        date={moment(newsInfo.created_at).fromNow()}
-                        title={newsInfo.story_title}
-                        newsUrl={newsInfo.story_url}
-                        onClickFavorite={() =>
-                          newsInfo.is_liked
-                            ? handleRemoveFavorite(newsInfo.objectID)
-                            : handleAddFavorite(newsInfo.objectID)
-                        }
-                      />
-                    </div>
-                  )
-              )}
-            </InfiniteScroll>
+            <div className="list-all">
+              <InfiniteScroll
+                dataLength={news.length}
+                next={handleFetchMoreData}
+                hasMore={hasMorePaginationNews}
+                loader={<div>Loading...</div>}
+                className="news-card-list news-list "
+              >
+                {news.map(
+                  (newsInfo, i) =>
+                    newsInfo.story_url && (
+                      <div className="news-item" key={i}>
+                        <NewsCard
+                          isFavorite={newsInfo.is_liked}
+                          author={newsInfo.author}
+                          date={moment(newsInfo.created_at).fromNow()}
+                          title={newsInfo.story_title}
+                          newsUrl={newsInfo.story_url}
+                          onClickFavorite={() =>
+                            newsInfo.is_liked
+                              ? handleRemoveFavorite(newsInfo.objectID)
+                              : handleAddFavorite(newsInfo.objectID)
+                          }
+                        />
+                      </div>
+                    )
+                )}
+              </InfiniteScroll>
+            </div>
           )}
 
           {/* When activeCategory is 'favorites' show this list for favorites */}
           {activeCategory === "favorites" && (
-            <InfiniteScroll
-              dataLength={favorites.length}
-              next={fetchMoreFavorites}
-              hasMore={hasMorePaginationNews}
-              loader={<div>Loading...</div>}
-              className="news-card-list news-list"
-            >
-              {favorites.map(
-                (newsInfo, i) =>
-                  newsInfo.story_url && (
-                    <div className="news-item" key={i}>
-                      <NewsCard
-                        isFavorite={true}
-                        author={newsInfo.author}
-                        date={moment(newsInfo.created_at).fromNow()}
-                        title={newsInfo.story_title}
-                        newsUrl={newsInfo.story_url}
-                        onClickFavorite={() =>
-                          handleRemoveFavorite(newsInfo.objectID)
-                        }
-                      />
-                    </div>
-                  )
-              )}
-            </InfiniteScroll>
+            <div className="list-favorites">
+              Favorites
+              <InfiniteScroll
+                dataLength={favorites.length}
+                next={fetchMoreFavorites}
+                hasMore={hasMorePaginationNews}
+                loader={<div>Loading...</div>}
+                className="news-card-list news-list "
+              >
+                {favorites.map(
+                  (newsInfo, i) =>
+                    newsInfo.story_url && (
+                      <div className="news-item" key={i}>
+                        <NewsCard
+                          isFavorite={true}
+                          author={newsInfo.author}
+                          date={moment(newsInfo.created_at).fromNow()}
+                          title={newsInfo.story_title}
+                          newsUrl={newsInfo.story_url}
+                          onClickFavorite={() =>
+                            handleRemoveFavorite(newsInfo.objectID)
+                          }
+                        />
+                      </div>
+                    )
+                )}
+              </InfiniteScroll>
+            </div>
           )}
         </div>
       </div>
