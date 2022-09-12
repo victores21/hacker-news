@@ -20,11 +20,6 @@ const NewsCard: React.FC<Props> = ({
   onClickFavorite,
 }) => {
   const { HeartIcon, ClockIcon } = useComponents();
-  // const [isLike, setIsLike] = useState<boolean>(isFavorite);
-
-  // const handleisLike = () => {
-  //   setIsLike(!isLike);
-  // };
 
   return (
     <div className="news-card">

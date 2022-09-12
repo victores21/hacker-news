@@ -7,8 +7,7 @@
 }
 .news-card:hover {
   transition: 0.2s all ease-out;
-  /* transform: scale(1.05); */
-  opacity: 0.8;
+  opacity: 0.5;
 }
 
 .news-card .news-card__content {
@@ -41,6 +40,7 @@
 .news-card__fav-button {
   width: 68px;
   position: relative;
+  cursor: pointer;
 }
 
 .news-card__fav-button button {

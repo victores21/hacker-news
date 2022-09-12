@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Home.css";
+import { News, SelectOption } from "../../shared/interfaces/home.interfaces";
 import IconAngular from "../../assets/images/icon_angular.png";
 import IconReact from "../../assets/images/icon_react.png";
 import IconVue from "../../assets/images/icon_vue.png";
@@ -7,68 +8,78 @@ import useComponents from "../../components";
 import useServices from "../../api/services";
 import Select from "react-select";
 import moment from "moment";
-
 import InfiniteScroll from "react-infinite-scroll-component";
 
-interface News {
-  author: string;
-  created_at: string;
-  objectID: string;
-  story_title: string;
-  story_url: string;
-  is_liked: boolean;
-}
+const selectOptions: SelectOption[] = [
+  {
+    value: "angular",
+    label: (
+      <div className="select-option">
+        <img src={IconAngular} alt="" />
+        Angular
+      </div>
+    ),
+  },
+  {
+    value: "react",
+    label: (
+      <div className="select-option">
+        <img src={IconReact} alt="" />
+        React
+      </div>
+    ),
+  },
+  {
+    value: "vue",
+    label: (
+      <div className="select-option">
+        <img src={IconVue} alt="" />
+        Vue
+      </div>
+    ),
+  },
+];
 
 const Home = () => {
   const { NewsCard, Header } = useComponents();
   const { getNewsByTechnology } = useServices();
-  const options: any = [
-    {
-      value: "angular",
-      label: (
-        <div className="select-option">
-          <img src={IconAngular} alt="" />
-          Angular
-        </div>
-      ),
-    },
-    {
-      value: "react",
-      label: (
-        <div className="select-option">
-          <img src={IconReact} alt="" />
-          React
-        </div>
-      ),
-    },
-    {
-      value: "vue",
-      label: (
-        <div className="select-option">
-          <img src={IconVue} alt="" />
-          Vue
-        </div>
-      ),
-    },
-  ];
+  // const { useHome } = useScreensControllers();
+  // const {
+  //   news,
+  //   setNews,
+  //   favorites,
+  //   likedPosts,
+  //   activeCategory,
+  //   hasMorePaginationNews,
+  //   selectOptions,
+  //   selectOption,
+  //   handleFetchMoreData,
+  //   fetchMoreFavorites,
+  //   handleAddFavorite,
+  //   handleRemoveFavorite,
+  //   handleActiveCategory,
+  //   handleSelect,
+  //   handleLikedPostsLocalStorage,
+  //   handleIsLiked,
+  //   handleSelectValue,
+  // } = useHome();
 
   const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectLoading, setSelectLoading] = useState<boolean>(false);
   const [favorites, setFavorites] = useState<News[]>([]);
   const [likedPosts, setLikedPosts] = useState<Array<string>>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [pagination, setPagination] = useState<number>(0);
   const [hasMorePaginationNews, setHasMorePaginationNews] =
     useState<boolean>(true);
-  const [selectOption, setSelectOption] = useState<string>(options[0].value);
+  const [selectOption, setSelectOption] = useState<string>(
+    selectOptions[0].value
+  );
 
-  const fetchMoreData = () => {
-    setLoading(true);
+  const handleFetchMoreData = (): void => {
     getNewsByTechnology(selectOption, pagination + 1)
       .then((res: any) => {
         if (res.hits.length > 0) {
-          const arrayFormateado: News[] = res.hits.map((hit: any) => ({
+          const postData: News[] = res.hits.map((hit: any) => ({
             objectID: hit.objectID,
             author: hit.author,
             created_at: hit.created_at,
@@ -77,9 +88,7 @@ const Home = () => {
             is_liked: handleIsLiked(hit.objectID),
           }));
 
-          setNews([...news, ...arrayFormateado]);
-          // setNews([...news, ...res.hits]);
-          setLoading(false);
+          setNews([...news, ...postData]);
           setPagination((prev) => prev + 1);
           setHasMorePaginationNews(true);
         } else {
@@ -87,23 +96,24 @@ const Home = () => {
         }
       })
       .catch((error) => {
-        setLoading(false);
         setHasMorePaginationNews(false);
         throw new Error(error);
       });
   };
 
+  const fetchMoreFavorites = () => {};
+
   const handleAddFavorite = (id: string) => {
-    const newInfo = news.filter(
-      (newInfo) => newInfo.objectID === id.toString()
+    const newFavPost = news.filter(
+      (newFavPost) => newFavPost.objectID === id.toString()
     )[0];
 
     const isDuplicated = favorites.some(
-      (favorite) => favorite.objectID === newInfo.objectID
+      (favorite) => favorite.objectID === newFavPost.objectID
     );
 
     if (!isDuplicated) {
-      setFavorites([...favorites, { ...newInfo, is_liked: true }]);
+      setFavorites([...favorites, { ...newFavPost, is_liked: true }]);
       setLikedPosts([...likedPosts, id]);
       setNews((current) =>
         current.map((obj) => {
@@ -114,27 +124,16 @@ const Home = () => {
           return obj;
         })
       );
-
-      console.log(
-        news.map((obj) => {
-          if (obj.objectID.toString() === id) {
-            return { ...obj, is_liked: true };
-          }
-
-          return obj;
-        })
-      );
-      console.log("Clcik");
       localStorage.setItem(
         "favorites",
-        JSON.stringify([...favorites, newInfo])
+        JSON.stringify([...favorites, newFavPost])
       );
       localStorage.setItem("liked-posts", JSON.stringify([...likedPosts, id]));
     }
   };
 
   const handleRemoveFavorite = (id: string) => {
-    const newFavorites = favorites.filter(
+    const newFavoritesArr = favorites.filter(
       (favorite) => favorite.objectID.toString() !== id.toString()
     );
 
@@ -147,10 +146,8 @@ const Home = () => {
         return obj;
       })
     );
-
-    console.log("newfav", newFavorites);
-    setFavorites(newFavorites);
-    localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    setFavorites(newFavoritesArr);
+    localStorage.setItem("favorites", JSON.stringify(newFavoritesArr));
   };
 
   const handleActiveCategory = (category: string) => {
@@ -158,9 +155,9 @@ const Home = () => {
   };
 
   const handleFavoriteLocalStorage = () => {
-    if (localStorage.getItem("favorites")) {
-      const favoritesLocalStorage: string | null =
-        localStorage.getItem("favorites");
+    const favoritesLocalStorage: string | null =
+      localStorage.getItem("favorites");
+    if (favoritesLocalStorage) {
       const arrFavoritesLocalStorage: News[] = favoritesLocalStorage
         ? JSON.parse(favoritesLocalStorage)
         : "";
@@ -170,13 +167,14 @@ const Home = () => {
   };
 
   const handleSelect = (selectValue: string) => {
+    const initialPagination = 0;
     setHasMorePaginationNews(true);
     setPagination(0);
     setSelectOption(selectValue);
-    setSelectLoading(true);
-    getNewsByTechnology(selectValue, 0)
+
+    getNewsByTechnology(selectValue, initialPagination)
       .then((res) => {
-        const arrayFormateado: News[] = res.hits.map((hit) => ({
+        const postData: News[] = res.hits.map((hit) => ({
           objectID: hit.objectID,
           author: hit.author,
           created_at: hit.created_at,
@@ -185,23 +183,14 @@ const Home = () => {
           is_liked: handleIsLiked(hit.objectID),
         }));
 
-        setNews(arrayFormateado);
-        setSelectLoading(false);
+        setNews(postData);
       })
       .catch((error) => {
-        setSelectLoading(false);
         throw new Error(error);
       });
+
     localStorage.setItem("select-value", selectValue);
   };
-
-  //   const handleSelectValueLocalStorage = () => {
-  //     if (localStorage.getItem("select-value")) {
-  //       const selectValueLocalStorage: any = localStorage.getItem("select-value");
-  //       console.log(selectValueLocalStorage);
-  //       setSelectOption(selectValueLocalStorage);
-  //     }
-  //   };
 
   const handleLikedPostsLocalStorage = () => {
     if (localStorage.getItem("liked-posts")) {
@@ -211,14 +200,6 @@ const Home = () => {
       setLikedPosts(JSON.parse(likedPostsLocalStorage));
       return JSON.parse(likedPostsLocalStorage);
     }
-  };
-
-  const getSelectValueFromLocalStorage = () => {
-    const selectedOption = options.filter(
-      (option: any) => option.value === selectOption
-    )[0];
-    console.log(selectOption);
-    return selectOption;
   };
 
   const handleIsLiked = (objectID: string) => {
@@ -233,12 +214,11 @@ const Home = () => {
   const handleSelectValue = (): any => {
     const localStorageSelectValue: string | null =
       localStorage.getItem("select-value");
-    if (!localStorageSelectValue) return options[0];
+    if (!localStorageSelectValue) return selectOptions[0];
 
     if (localStorageSelectValue) {
-      let selectedOption = options.find(
-        (obj: { value: string; label: string }) =>
-          obj.value === localStorageSelectValue
+      let selectedOption = selectOptions.find(
+        (option: SelectOption) => option.value === localStorageSelectValue
       );
 
       return selectedOption;
@@ -252,10 +232,9 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     getNewsByTechnology(handleSelectValue().value, 0)
       .then((res) => {
-        const arrayFormateado: News[] = res.hits.map((hit) => ({
+        const postData: News[] = res.hits.map((hit) => ({
           objectID: hit.objectID,
           author: hit.author,
           created_at: hit.created_at,
@@ -264,14 +243,12 @@ const Home = () => {
           is_liked: handleIsLiked(hit.objectID),
         }));
 
-        setNews(arrayFormateado);
-        setLoading(false);
+        setNews(postData);
       })
       .catch((error) => {
-        setLoading(false);
         throw new Error(error);
       });
-  }, []);
+  }, [getNewsByTechnology]);
 
   return (
     <div>
@@ -299,16 +276,13 @@ const Home = () => {
             </div>
           </div>
           {/* Selector */}
-
           {selectOption && (
             <div className="select-box">
               <Select
-                options={options}
-                // defaultValue={options[0]}
+                options={selectOptions}
                 defaultValue={handleSelectValue()}
-                onChange={(evt: any) => handleSelect(evt.value)}
+                onChange={(evt) => handleSelect(evt.value)}
               />
-              bo{options[0].value}
             </div>
           )}
 
@@ -317,34 +291,12 @@ const Home = () => {
             <div>
               <InfiniteScroll
                 dataLength={news.length}
-                next={fetchMoreData}
+                next={handleFetchMoreData}
                 hasMore={hasMorePaginationNews}
                 loader={<div>Loading...</div>}
                 className="news-card-list news-list"
               >
-                {selectLoading
-                  ? "Loading..."
-                  : news.map(
-                      (newsInfo, i) =>
-                        newsInfo.story_url && (
-                          <div className="news-item" key={i}>
-                            {newsInfo.objectID}
-                            <NewsCard
-                              isFavorite={newsInfo.is_liked}
-                              author={newsInfo.author}
-                              date={moment(newsInfo.created_at).fromNow()}
-                              title={newsInfo.story_title}
-                              newsUrl={newsInfo.story_url}
-                              onClickFavorite={() =>
-                                newsInfo.is_liked
-                                  ? handleRemoveFavorite(newsInfo.objectID)
-                                  : handleAddFavorite(newsInfo.objectID)
-                              }
-                            />
-                          </div>
-                        )
-                    )}
-                {/* {news.map(
+                {news.map(
                   (newsInfo, i) =>
                     newsInfo.story_url && (
                       <div className="news-item" key={i}>
@@ -363,7 +315,7 @@ const Home = () => {
                         />
                       </div>
                     )
-                )} */}
+                )}
               </InfiniteScroll>
             </div>
           )}
@@ -372,7 +324,7 @@ const Home = () => {
             <div>
               <InfiniteScroll
                 dataLength={favorites.length}
-                next={fetchMoreData}
+                next={fetchMoreFavorites}
                 hasMore={hasMorePaginationNews}
                 loader={<div>Loading...</div>}
                 className="news-card-list news-list"
