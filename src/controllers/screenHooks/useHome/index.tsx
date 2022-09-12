@@ -124,6 +124,7 @@ const useHome = () => {
     const newFavoritesArr = favorites.filter(
       (favorite) => favorite.objectID.toString() !== id.toString()
     );
+    const likedPost = likedPosts.filter((likedPost) => likedPost !== id);
 
     setNews((current) =>
       current.map((obj) => {
@@ -135,7 +136,9 @@ const useHome = () => {
       })
     );
     setFavorites(newFavoritesArr);
+    setLikedPosts(likedPost);
     localStorage.setItem("favorites", JSON.stringify(newFavoritesArr));
+    localStorage.setItem("liked-posts", JSON.stringify(likedPost));
   };
 
   // Handles switching from all technologies to favorites
