@@ -53,8 +53,8 @@ const Home = () => {
             </div>
             <div
               className={`category ${
-                activeCategory === "favorites" && "category--active"
-              }`}
+                favorites.length === 0 && "category--disabled"
+              } ${activeCategory === "favorites" && "category--active"}`}
               onClick={() => handleActiveCategory("favorites")}
             >
               My Faves

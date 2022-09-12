@@ -244,6 +244,12 @@ const useHome = () => {
     // eslint-disable-next-line
   }, [getNewsByTechnology]);
 
+  useEffect(() => {
+    if (favorites.length === 0) {
+      setActiveCategory("all");
+    }
+  }, [favorites]);
+
   return {
     selectOptions,
     news,
