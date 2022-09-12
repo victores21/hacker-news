@@ -19,12 +19,18 @@
   text-decoration: none;
 }
 
-.news-card .news-card__content .news-card__date {
+.news-card .news-card__content .news-card__date,
+.news-card__date--author {
   font-size: 0.688rem;
   color: #767676;
   padding-bottom: 0.5rem;
   display: flex;
   align-items: center;
+}
+
+.news-card .news-card__content .news-card__date--author {
+  padding: 0;
+  padding-left: 0.2rem;
 }
 
 .news-card .news-card__content .news-card__date-icon {

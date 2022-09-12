@@ -1,5 +1,5 @@
 import useComponents from "..";
-// import { useState } from "react";
+
 import "./newsCard.css";
 
 interface Props {
@@ -29,7 +29,7 @@ const NewsCard: React.FC<Props> = ({
             <div className="news-card__date-icon">
               <ClockIcon />
             </div>
-            {date} by {author}
+            {date} by <span className="news-card__date--author">{author}</span>
           </div>
           <h2 className="news-card__title">{title}</h2>
         </a>
